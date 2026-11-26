@@ -519,6 +519,17 @@ char ManaGunZ_id[10];
 
 char *ManaGunZ_path=NULL;
 
+// UI text size in percent (UI SETTINGS > Font size), e.g. bigger text for 480i/576i
+static u8 FONT_SCALE = 100;
+#define FONT_SCALE_NB 6
+static const u8 FONT_SCALE_VALUES[FONT_SCALE_NB] = {100, 110, 120, 130, 140, 150};
+// fixed line steps scaled like the text (identical at 100%)
+#define FS(x) ((x) * FONT_SCALE / 100)
+#define STR_FONT_SCALE    "Font size"
+#define STR_UPDATES_TO_NET "Copy game updates to net0 (PKG)"
+// copy downloaded game updates to /net0:/PKG as well (needs net0 in setting/net.txt)
+static u8 UPDATES_TO_NET = YES;
+
 #define STR_DUMP_DEC_NET  "Dump decrypted Blu-ray to net0 (PS3ISO)"
 #define STR_DUMP_ENC_NET  "Dump encrypted Blu-ray to net0 (PS3ISO)"
 #define STR_BUILD_ISO_NET "Build ISO to net0 (PS3ISO)"
@@ -1811,6 +1822,7 @@ float new_line(float nb)
 
 void FontSize(float size)
 {
+	size = size * FONT_SCALE / 100;
 	SetFontSize((float) (3 * size / 4),  size );
 }
 
@@ -2060,7 +2072,7 @@ void Draw_title(float x, float y, char *str)
 	Draw_Box(x+5, y+4, 9, 0, 8, 8, COLOR_3, NO);
 	FontColor(COLOR_3);
 	xt=DrawString(x+20, y, str);
-	y+=18;
+	y+=FS(18);
 	Draw_Box(x, y, 9, 0, xt-x, 2, COLOR_3, NO); //underline
 	FontSize(15);
 	FontColor(COLOR_1);
@@ -9914,7 +9926,7 @@ void Draw_Loading(void *unused)
 				FontColor(COLOR_2);
 				DrawString(x, y, head_title);
 				FontColor(COLOR_1);
-				y+=20;
+				y+=FS(20);
 			}
 			if( task_ProgressBar1_max != 0 && start == 0 && task_ProgressBar1_max != task_ProgressBar1_val) {
 				start = sTime();
@@ -9991,9 +10003,9 @@ void Draw_Loading(void *unused)
 			} else 
 			if(prog_bar1_value >= 0) {
 				Draw_Progress_Bar(x, y, 2, prog_bar1_value, COLOR_2);
-				y+=15;
+				y+=FS(15);
 				if(prog_bar2_value >= 0) Draw_Progress_Bar(x, y, 2, prog_bar2_value, COLOR_2);
-				y+=25;
+				y+=FS(25);
 			}
 			
 			if(!loading) break;
@@ -10005,7 +10017,7 @@ void Draw_Loading(void *unused)
 				else FontColor(COLOR_1);
 				
 				DrawFormatString(x , y, loading_log[i]);
-				y+=20;
+				y+=FS(20);
 				if(y>450) break;
 			}
 		}
@@ -10300,14 +10312,14 @@ void Draw_Gathering(void *unused)
 		
 		FontColor(COLOR_1);
 		DrawFormatString(x, y, STR_GATHERING);
-		y+=20;
+		y+=FS(20);
 		DrawFormatString(x, y, "%s = %i", STR_FILES, gathering_nb_file);
-		y+=20;
+		y+=FS(20);
 		DrawFormatString(x, y, "%s = %i", STR_DIRS, gathering_nb_directory);
-		y+=20;
+		y+=FS(20);
 		char *size_tot = get_unit(gathering_total_size);
 		DrawFormatString(x, y,"%s = %s", STR_TOTALSIZE, size_tot);
-		y+=20;
+		y+=FS(20);
 		FREE(size_tot);
 		
 		for(i=0; i<=20; i++){
@@ -10316,7 +10328,7 @@ void Draw_Gathering(void *unused)
 			else FontColor(COLOR_1);
 			
 			DrawFormatString(x , y, loading_log[i]);
-			y+=20;
+			y+=FS(20);
 			if(y>450) break;
 		}
 		
@@ -14770,13 +14782,13 @@ void Draw_Copy_screen(void *unused)
 		
 		y+=new_line(1);
 		
-		DrawFormatString(x , y, "%s :", STR_FROM);
-		DrawString(120, y, copy_src);
+		float lx = DrawFormatString(x , y, "%s :", STR_FROM);
+		DrawString(lx+10 < 120 ? 120 : lx+10, y, copy_src);
 		
 		y+=new_line(1);
 		
-		DrawFormatString(x , y, "%s :", STR_TO);
-		DrawString(120, y, copy_dst);
+		lx = DrawFormatString(x , y, "%s :", STR_TO);
+		DrawString(lx+10 < 120 ? 120 : lx+10, y, copy_dst);
 		
 		y+=new_line(1);
 		
@@ -14849,13 +14861,13 @@ void Draw_Copy_screen(void *unused)
 			Draw_Progress_Bar_Advanced(x, y, 0, 0, bar_w, 4, 1, WHITE, BLACK, GREEN,  gathering_total_size, copy_current_size);
 		}
 		
-		y+=15;
+		y+=FS(15);
 		if(1 < gathering_nb_file) {
 			Draw_Progress_Bar_Advanced(x, y, 0, 0, bar_w, 4, 1, WHITE, BLACK, GREEN, 100, copy_file_prog_bar);
-			y+=20;
+			y+=FS(20);
 			DrawFormatString(x, y, "%s : %s", STR_FILE, copy_file);
 		}
-		y+=20;
+		y+=FS(20);
 		
 		FontSize(17);
 		
@@ -14868,7 +14880,7 @@ void Draw_Copy_screen(void *unused)
 						else FontColor(COLOR_1);
 						
 						DrawFormatString(x , y, loading_log[i]);
-						y+=20;
+						y+=FS(20);
 						if(y>450) break;
 					}
 				}
@@ -18047,7 +18059,7 @@ void Draw_MemMonitor()
 	free(MemUsed_u);
 	free(MemTot_u);
 	
-	y+=20;
+	y+=FS(20);
 
 //FONT
 	float w_font_max = (float) ( ( _Mo(TEXTURE_FONT_SIZE_MAX) * w) / _Mo(TEXTURE_SIZE_MAX));
@@ -20446,7 +20458,7 @@ void unplug_device()
 			
 			DrawFormatString(x, y, "%s :", STR_UNPLUG);
 			for(i=0; i<15; i++){
-				y+=20;
+				y+=FS(20);
 				DrawString(x, y, list_to_unplug[i]);
 			}
 		
@@ -25101,6 +25113,15 @@ void read_setting()
 		fread(&SHOW_LOG, sizeof(u8), 1, fp);
 		fread(&OVERWRITE, sizeof(u8), 1, fp);
 		fread(&DUMPER_MAX_TRY, sizeof(u8), 1, fp);
+		{	// added later: older setting.bin files end before it
+			u8 fs = 100;
+			if( fread(&fs, sizeof(u8), 1, fp) == 1 && 100 <= fs && fs <= 150 ) FONT_SCALE = fs;
+			else FONT_SCALE = 100;
+			
+			u8 un = YES;
+			if( fread(&un, sizeof(u8), 1, fp) == 1 && un <= 1 ) UPDATES_TO_NET = un;
+			else UPDATES_TO_NET = YES;
+		}
 		
 		fclose(fp);
 	} 
@@ -25180,6 +25201,8 @@ void write_setting()
 		fwrite(&SHOW_LOG, sizeof(u8), 1, fp);
 		fwrite(&OVERWRITE, sizeof(u8), 1, fp);
 		fwrite(&DUMPER_MAX_TRY, sizeof(u8), 1, fp);
+		fwrite(&FONT_SCALE, sizeof(u8), 1, fp);
+		fwrite(&UPDATES_TO_NET, sizeof(u8), 1, fp);
 		
 		fclose(fp);
 		SetFilePerms(setPath);
@@ -31140,6 +31163,9 @@ void Draw_HELP()
 	if(item_is(STR_IGNORE_ERR)) {
 		DrawString(x, y, STR_IGNORE_ERR_DESC);
 	} else
+	if(item_is(STR_UPDATES_TO_NET)) {
+		DrawFormatString(x, y, "Downloaded game updates are also copied to /net0:/PKG (ps3netsrv %s).", (char *) net_io_server());
+	} else
 	if(item_is(STR_3K3Y_HEADER)) {
 		DrawString(x, y, STR_3K3Y_HEADER_DESC);
 	} else
@@ -31190,6 +31216,9 @@ void Draw_HELP()
 	} else
 	if(item_is(STR_SHOW_PIC1)) {
 		DrawString(x, y, STR_SHOW_PIC1_DESC);
+	} else
+	if(item_is(STR_FONT_SCALE)) {
+		DrawString(x, y, "Size of the text. Bigger text is easier to read on SD TVs (480i/576i).");
 	} else
 	if(item_is(STR_SIDE_MENU)) {
 		DrawString(x, y, STR_SIDE_MENU_DESC);
@@ -32475,7 +32504,7 @@ void CONFIG_check(char *IsoPath)
 			
 			float x=250, y=200; 
 			DrawFormatString(x, y, "%s", STR_USE_CONFIG);
-			y+=20;
+			y+=FS(20);
 			x = DrawFormatString(x, y, "%s : ", STR_LOAD);
 			FontColor(COLOR_2);
 			DrawString(x, y, CONFIG_STR[config_position]);
@@ -35549,6 +35578,39 @@ u8 PS3_UPDATE_MENU_TRIANGLE()
 	return CONTINUE;
 }
 
+// copy a downloaded update to /net0:/PKG (skipped when the same size is already there)
+static void copy_update_to_net(char *pkg_path)
+{
+	if( !net_io_enabled() || !UPDATES_TO_NET ) return;
+	
+	char *name = strrchr(pkg_path, '/');
+	if( name == NULL ) return;
+	
+	char dst[512];
+	MGZ_mkdir_recursive("/net0:/PKG");
+	sprintf(dst, "/net0:/PKG%s", name);
+	
+	struct stat sl, sr;
+	if( stat(pkg_path, &sl) != 0 ) return;
+	if( stat(dst, &sr) == 0 ) {
+		if( sr.st_size == sl.st_size ) {
+			print_load("Already on net0 : %s", dst);
+			return;
+		}
+		unlink(dst);
+	}
+	
+	print_head("Copying update to net0...");
+	strncpy(copy_src, pkg_path, sizeof(copy_src)-1);
+	strncpy(copy_dst, dst, sizeof(copy_dst)-1);
+	if( CopyFile(pkg_path, dst) == SUCCESS ) {
+		print_load("Copied to %s", dst);
+	} else {
+		print_load("Error : failed to copy %s to %s", pkg_path, dst);
+		unlink(dst);
+	}
+}
+
 u8 PS3_UPDATE_MENU_START()
 {
 	loading_can_turnoff = YES;
@@ -35562,6 +35624,9 @@ u8 PS3_UPDATE_MENU_START()
 			if( download(ps3_game_updates[n].url, ps3_game_updates[n].pkg_path) ) {
 				ps3_game_updates[n].pkg_exist = YES;
 			}
+		}
+		if( ps3_game_updates[n].to_dl && ps3_game_updates[n].pkg_exist ) {
+			copy_update_to_net(ps3_game_updates[n].pkg_path);
 		}
 	}
 	task_End();
@@ -35822,7 +35887,7 @@ void Draw_CHOOSE_IDPS_menu()
 	Draw_Box(0, 0, 0, 0, 848, 512, 0x00000080, NO);
 	Draw_Box(0, y, 0, 0, X_MAX, h, GREY, NO);
 	
-	y+=15;
+	y+=FS(15);
 	
 	FontColor(COLOR_3);
 	SetFontZ(0);
@@ -35982,7 +36047,7 @@ void Draw_CHOOSE_IDPS_menu()
 		if(IDPS[0xF] - (IDPS[0xF] >> 4)*0x10 > 0x0) DrawDown((x+x1)/2, y+25*0.85);
 	}
 	
-	x=70; y+=25;
+	x=70; y+=FS(25);
 	FontSize(10);
 	FontColor(COLOR_3);
 	x=DrawString(x,y, "Target ID : ");
@@ -38465,6 +38530,15 @@ void init_SETTINGS()
 	ITEMS_VALUE_POSITION[ITEMS_NUMBER] = UI_position;
 	ITEMS_VALUE_SHOW[ITEMS_NUMBER] = YES;
 	
+	add_item_MENU(STR_FONT_SCALE, ITEM_TEXTBOX);
+	for(i=0; i < FONT_SCALE_NB; i++) {
+		char tmp[8];
+		sprintf(tmp, "%d%%", FONT_SCALE_VALUES[i]);
+		add_item_value_MENU(tmp);
+		if(FONT_SCALE_VALUES[i] == FONT_SCALE) ITEMS_VALUE_POSITION[ITEMS_NUMBER] = i;
+	}
+	ITEMS_VALUE_SHOW[ITEMS_NUMBER] = YES;
+	
 	add_item_MENU(STR_SIDE_MENU, ITEM_TOGGLE);
 	ITEMS_VALUE_POSITION[ITEMS_NUMBER] = Use_SideMenu;
 	
@@ -38876,6 +38950,10 @@ void init_SETTINGS()
 	
 	add_item_MENU(STR_IGNORE_ERR, ITEM_TOGGLE);
 	ITEMS_VALUE_POSITION[ITEMS_NUMBER] = IGNORE_ERR;
+	if( net_io_enabled() ) {
+		add_item_MENU(STR_UPDATES_TO_NET, ITEM_TOGGLE);
+		ITEMS_VALUE_POSITION[ITEMS_NUMBER] = UPDATES_TO_NET;
+	}
 	if( !HEN ) {
 		add_item_MENU(STR_3K3Y_HEADER, ITEM_TOGGLE);
 		ITEMS_VALUE_POSITION[ITEMS_NUMBER] = with_3k3y_header;
@@ -38967,6 +39045,10 @@ void update_SETTINGS()
 				UI_position = ITEMS_VALUE_POSITION[ITEMS_POSITION];
 				init_SETTINGS();
 			}
+		} else
+		if(item_is(STR_FONT_SCALE)) {
+			u8 v = ITEMS_VALUE_POSITION[ITEMS_POSITION];
+			if( v < FONT_SCALE_NB ) FONT_SCALE = FONT_SCALE_VALUES[v];
 		} else
 		if(item_is(STR_SIDE_MENU)) {
 			Use_SideMenu = ITEMS_VALUE_POSITION[ITEMS_POSITION];
@@ -39200,6 +39282,9 @@ void update_SETTINGS()
 		}
 	} else
 	if( item_title_is(STR_DUMP_OPTION)){
+		if(item_is(STR_UPDATES_TO_NET)) {
+			UPDATES_TO_NET = ITEMS_VALUE_POSITION[ITEMS_POSITION];
+		} else
 		if(item_is(STR_3K3Y_HEADER)) {
 			with_3k3y_header = ITEMS_VALUE_POSITION[ITEMS_POSITION];
 		} else
@@ -39833,7 +39918,7 @@ void AutoMount()
 			FontColor(RED);
 			
 			DrawString(x, y, STR_NOGAME);
-			y+=20;
+			y+=FS(20);
 			DrawFormatString(x, y, "%s = %s", STR_PATH, GamPath);
 			
 			DrawFormatString(10, 10, "%d", gui_called);
@@ -40079,7 +40164,7 @@ void Draw_filter()
 		if( Only_FAV ) DrawString(x+5, y, STR_ONLY_FAV);
 		else DrawString(x+5, y, STR_ALL_GAMES);
 		
-		y+=25;
+		y+=FS(25);
 		x-=8;
 		
 		FontSize(18);
@@ -40088,20 +40173,20 @@ void Draw_filter()
 		
 		FontSize(15);
 		x+=8;
-		y+=15;
+		y+=FS(15);
 	} else {
 		FontSize(15);
 		
 		Draw_checkbox(x+5, y, 0, STR_FAVORITE, Only_FAV, filter_position==0);
 	}
 	
-	y+=15;
+	y+=FS(15);
 	Draw_checkbox(x+5, y, 0, "PS3", Show_PS3, filter_position==1);
-	y+=15;
+	y+=FS(15);
 	Draw_checkbox(x+5, y, 0, "PS2", Show_PS2, filter_position==2);
-	y+=15;
+	y+=FS(15);
 	Draw_checkbox(x+5, y, 0, "PS1", Show_PS1, filter_position==3);
-	y+=15;
+	y+=FS(15);
 	Draw_checkbox(x+5, y, 0, "PSP", Show_PSP, filter_position==4);
 	
 	FontColor(COLOR_1);
