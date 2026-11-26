@@ -533,6 +533,13 @@ static u8 UPDATES_TO_NET = YES;
 #define STR_DUMP_DEC_NET  "Dump decrypted Blu-ray to net0 (PS3ISO)"
 #define STR_DUMP_ENC_NET  "Dump encrypted Blu-ray to net0 (PS3ISO)"
 #define STR_BUILD_ISO_NET "Build ISO to net0 (PS3ISO)"
+#define STR_NET_SERVER    "Network server (net0)"
+#define STR_NET_SERVER_DESC "PC running ps3netsrv to dump to, as IP or IP:port (default port 38008). Saved in setting/net.txt. Leave empty to turn net0 off."
+
+static void net_cfg_path(char *path)
+{
+	sprintf(path, "%s/USRDIR/setting/net.txt", ManaGunZ_path);
+}
 
 static int position_CURPIC=-1;
 
@@ -25452,7 +25459,7 @@ int init_ManaGunZ()
 	
 	{
 		char net_cfg[255];
-		sprintf(net_cfg, "%s/USRDIR/setting/net.txt", ManaGunZ_path);
+		net_cfg_path(net_cfg);
 		if( net_io_init(net_cfg) ) print_debug("net0 = ps3netsrv %s", net_io_server());
 	}
 
@@ -31177,6 +31184,9 @@ void Draw_HELP()
 	} else
 	if(item_is(STR_UPLOADER)) {
 		DrawString(x, y, STR_UPLOADER_DESC);
+	} else
+	if(item_is(STR_NET_SERVER)) {
+		DrawString(x, y, STR_NET_SERVER_DESC);
 	} else
 	if(item_is(STR_BT_AUDIO)) {
 		DrawString(x, y, STR_BT_AUDIO_DESC);
@@ -38970,6 +38980,14 @@ void init_SETTINGS()
 	
 	add_item_MENU(STR_IGNORE_ERR, ITEM_TOGGLE);
 	ITEMS_VALUE_POSITION[ITEMS_NUMBER] = IGNORE_ERR;
+	add_item_MENU(STR_NET_SERVER, ITEM_TEXTBOX);
+	if( net_io_enabled() ) {
+		add_item_value_MENU((char *) net_io_server());
+	} else {
+		add_item_value_MENU(STR_NONE);
+	}
+	ITEMS_VALUE_POSITION[ITEMS_NUMBER] = 0;
+	ITEMS_VALUE_SHOW[ITEMS_NUMBER] = YES;
 	if( net_io_enabled() ) {
 		add_item_MENU(STR_UPDATES_TO_NET, ITEM_TOGGLE);
 		ITEMS_VALUE_POSITION[ITEMS_NUMBER] = UPDATES_TO_NET;
@@ -39427,6 +39445,20 @@ u8 SETTINGS_CROSS()
 			}
 		}
 	} else 
+	if(item_is(STR_NET_SERVER)) {
+		char tmpName[0x40];
+		memset(tmpName, 0, 0x40);
+		if( net_io_enabled() ) strncpy(tmpName, net_io_server(), 0x3F);
+		if(Get_OSK_String(STR_NET_SERVER, tmpName, 0x40) == SUCCESS) {
+			if( net_io_parse_server(tmpName) ) {
+				char net_cfg[255];
+				net_cfg_path(net_cfg);
+				net_io_save(net_cfg);
+			} else {
+				show_msg("Invalid server, use IP or IP:port");
+			}
+		}
+	} else
 	if(item_is(STR_UPLOADER)) {
 		char tmpName[0x40];
 		memset(tmpName, 0, 0x40);
@@ -39504,6 +39536,12 @@ u8 SETTINGS_SQUARE()
 	} else
 	if(item_is(STR_UPLOADER)) {
 		memset(UPLOADER, 0, 0x40);
+	} else
+	if(item_is(STR_NET_SERVER)) {
+		char net_cfg[255];
+		net_cfg_path(net_cfg);
+		net_io_disable();
+		net_io_save(net_cfg);
 	} else
 	if(item_is(STR_DUMPER_MAX_TRY)) {
 		DUMPER_MAX_TRY = 30;
@@ -39798,7 +39836,7 @@ void Draw_SETTINGS_input()
 				x=DrawButton(x, y, STR_DELETE, BUTTON_TRIANGLE);
 			}
 		} else
-		if(item_is(STR_UPLOADER)){
+		if(item_is(STR_UPLOADER) || item_is(STR_NET_SERVER)){
 			x=DrawButton(x, y, STR_RENAME, BUTTON_CROSS);
 			x=DrawButton(x, y, STR_RESET, BUTTON_SQUARE);
 		}
