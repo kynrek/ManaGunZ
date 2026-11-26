@@ -31385,6 +31385,26 @@ void Draw_MENU()
 		x2 = MENU_ITEMS_VALUE_X;
 	}
 	
+	if(FONT_SCALE > 100) {
+		// With a bigger font the fixed column positions are too close:
+		// move the item and value columns right of the widest text.
+		float w, w_title=0, w_item=0;
+		for(i=0; i<=ITEMS_NUMBER; i++) {
+			if(USE_TITLE_MENU && TITLES[i] != NULL) {
+				w = WidthFromStr(TITLES[i]);
+				if(w_title < w) w_title = w;
+			}
+			if(ITEMS[i] == NULL) continue;
+			if(MENU_TABLE_START != -1 && MENU_TABLE_START < i && i <= MENU_TABLE_END) continue;
+			w = WidthFromStr(ITEMS[i]) + FS(20);
+			if(w_item < w) w_item = w;
+		}
+		if( USE_TITLE_MENU && x1 < x3 + w_title + FS(15) ) x1 = x3 + w_title + FS(15);
+		if( x2 < x1 + w_item + FS(15) ) x2 = x1 + w_item + FS(15);
+		if( x2 > X_MAX - FS(100) ) x2 = X_MAX - FS(100);
+		if( x2 < x1 ) x2 = x1;
+	}
+	
 	if( USE_TITLE_MENU ) {
 		TITLE_MENU_FIRST_ITEM =ITEMS_POSITION;
 		TITLE_MENU_LAST_ITEM  =ITEMS_POSITION;
@@ -31480,7 +31500,7 @@ void Draw_MENU()
 				DrawFormatString(x1, y, ITEMS[i]);
 			}
 			
-			Draw_toggle(x2, y, 9, 12, ITEMS_VALUE_POSITION[i]);
+			Draw_toggle(x2, y + (GetFontHeight()-FS(12))/2, 9, FS(12), ITEMS_VALUE_POSITION[i]);
 			
 			y+=new_line(1);
 			
@@ -31611,10 +31631,10 @@ void Draw_MENU()
 
 			memcpy(&color, ITEMS_VALUE[i][0], 4);
 			
-			DrawFormatString(x2 + 20, y, "0x%08X", color);
+			DrawFormatString(x2 + FS(20), y, "0x%08X", color);
 			
 			color=color - GetALPHA(color) + 0xFF;
-			Draw_Box(x2, y+1, 10, 0, 16, 10, color, NO);		
+			Draw_Box(x2, y+FS(1), 10, 0, FS(16), FS(10), color, NO);		
 		
 			y+=new_line(1);
 		} else
@@ -31628,15 +31648,15 @@ void Draw_MENU()
 			
 			DrawFormatString(x1, y, ITEMS[i]);
 		
-			Draw_toggle(x2, y, 9, 12, ITEMS_VALUE_POSITION[i]);	
+			Draw_toggle(x2, y + (GetFontHeight()-FS(12))/2, 9, FS(12), ITEMS_VALUE_POSITION[i]);	
 			
 			if( ITEMS_VALUE_POSITION[i] ) {
 				memcpy(&color, ITEMS_VALUE[i][0], 4);
 				
-				DrawFormatString(x2 + 28 + 20, y, "0x%08X", color);
+				DrawFormatString(x2 + FS(28) + FS(20), y, "0x%08X", color);
 				
 				color=color - GetALPHA(color) + 0xFF;
-				Draw_Box(x2 + 28, y+1, 10, 0, 16, 10, color, NO);		
+				Draw_Box(x2 + FS(28), y+FS(1), 10, 0, FS(16), FS(10), color, NO);		
 			}
 			
 			y+=new_line(1);
